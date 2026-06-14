@@ -1,2 +1,178 @@
-# mahabharata-dharma-yuddha
-AAA Style Mahabharata Action RPG Game with Arjuna and Krishna
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mahabharata: Dharma Yuddha</title>
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#111;
+}
+canvas{
+    display:block;
+    background:#4a7c59;
+}
+#ui{
+    position:absolute;
+    top:10px;
+    left:10px;
+    color:white;
+    font-size:20px;
+    font-family:Arial;
+}
+</style>
+</head>
+<body>
+
+<div id="ui">
+Health: <span id="health">100</span>
+|
+Kills: <span id="kills">0</span>
+<br>
+Arrow Keys = Move | Space = Attack
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let keys = {};
+let kills = 0;
+let health = 100;
+
+document.addEventListener("keydown",e=>{
+    keys[e.key]=true;
+});
+
+document.addEventListener("keyup",e=>{
+    keys[e.key]=false;
+});
+
+const player={
+    x:100,
+    y:200,
+    size:50,
+    speed:5
+};
+
+const enemies=[];
+
+function spawnEnemy(){
+    enemies.push({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        size:40
+    });
+}
+
+for(let i=0;i<5;i++) spawnEnemy();
+
+function attack(){
+    for(let i=enemies.length-1;i>=0;i--){
+        let e=enemies[i];
+
+        let dx=player.x-e.x;
+        let dy=player.y-e.y;
+        let dist=Math.sqrt(dx*dx+dy*dy);
+
+        if(dist<80){
+            enemies.splice(i,1);
+            kills++;
+            spawnEnemy();
+        }
+    }
+}
+
+document.addEventListener("keydown",e=>{
+    if(e.code==="Space"){
+        attack();
+    }
+});
+
+function update(){
+
+    if(keys["ArrowUp"]) player.y-=player.speed;
+    if(keys["ArrowDown"]) player.y+=player.speed;
+    if(keys["ArrowLeft"]) player.x-=player.speed;
+    if(keys["ArrowRight"]) player.x+=player.speed;
+
+    enemies.forEach(e=>{
+
+        if(e.x<player.x) e.x+=1;
+        if(e.x>player.x) e.x-=1;
+        if(e.y<player.y) e.y+=1;
+        if(e.y>player.y) e.y-=1;
+
+        let dx=player.x-e.x;
+        let dy=player.y-e.y;
+        let dist=Math.sqrt(dx*dx+dy*dy);
+
+        if(dist<40){
+            health-=0.1;
+        }
+    });
+
+    document.getElementById("kills").innerText=Math.floor(kills);
+    document.getElementById("health").innerText=Math.floor(health);
+
+    if(health<=0){
+        alert("Game Over");
+        location.reload();
+    }
+}
+
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Arjuna
+    ctx.fillStyle="blue";
+    ctx.fillRect(
+        player.x,
+        player.y,
+        player.size,
+        player.size
+    );
+
+    ctx.fillStyle="white";
+    ctx.fillText(
+        "ARJUNA",
+        player.x-5,
+        player.y-10
+    );
+
+    enemies.forEach(e=>{
+        ctx.fillStyle="red";
+        ctx.fillRect(
+            e.x,
+            e.y,
+            e.size,
+            e.size
+        );
+
+        ctx.fillStyle="yellow";
+        ctx.fillText(
+            "KAURAVA",
+            e.x-10,
+            e.y-5
+        );
+    });
+}
+
+function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
